@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Leader Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        /***** GLOBAL LAYOUT *****/
+        html, body { height: 100%; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f7f7f7; color: #222; }
+
+        /* WRAPPER */
+        .container {
+            height: 100vh;
+            width: 100vw;
+            max-width: 100%;
+            max-height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        /***** TOP BAR *****/
+        .top-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #f7f7f7; padding: 0.7em 2em; border-bottom: 1px solid #e0e0e0;
+            flex: 0 0 60px; box-sizing: border-box;
+        }
+        .timers { display: flex; align-items: center; gap: 2em; font-size: 1.2em; }
+        #start-game-btn { padding: 0.5em 1.2em; font-size: 1.1em; margin-left: 1em; }
+
+        /***** MAIN AREA *****/
+        .main-area {
+            flex: 1 1 auto;
+            display: grid;
+            /* CHATBOX WIDER: increase right column fraction */
+            grid-template-columns: 1.2fr 2.6fr 1.6fr;
+            width: 100%; overflow: hidden; box-sizing: border-box; background: #f7f7f7;
+        }
+
+        /***** PANELS *****/
+        .left-panel, .right-panel { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+        .left-panel {
+            display: flex; flex-direction: column; padding: 2em 1em 1em; background: #f7f7f7;
+            border-right: 1px solid #e0e0e0; min-width: 240px; max-width: 340px; gap: 1.2em; box-sizing: border-box;
+        }
+        .right-panel {
+            display: flex; flex-direction: column; padding: 2em 1.5em 1em; background: #f7f7f7;
+            border-left: 1px solid #e0e0e0; min-width: 320px; box-sizing: border-box;
+        }
+
+        /* CHATBOX SMALLER TEXT */
+        .log-box {
+            flex: 1 1 0; overflow-y: auto; min-height: 0; background: #f3f3f3;
+            border: 1.5px solid #e0e0e0; border-radius: 18px; padding: 1.5em 1.5em;
+            font-size: 0.95em; /* smaller */
+            box-shadow: 0 2px 12px #0001; display: flex; flex-direction: column;
+        }
+        .reflection-box { width: 100%; display: flex; flex-direction: column; }
+        #reflection-area { border-radius: 12px; border: 1.5px solid #e0e0e0; background: #fff;
+            font-size: 1em; padding: 1em 1.2em; margin-bottom: 1em; resize: none; width: 100%; box-sizing: border-box; }
+
+        /***** CENTRE PANEL & GRID *****/
+        .center-panel { display: flex; align-items: center; justify-content: center; overflow: auto; height: 100%; width: 100%; }
+        .grid {
+            display: grid; gap: 8px; background: #fff; box-shadow: 2px 2px 12px rgba(0,0,0,0.10);
+            grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr);
+            align-content: center; justify-content: center; padding: 24px; border-radius: 18px;
+            /* BOARD BIGGER: wider range */
+            width:  clamp(320px, 60vmin, 700px);
+            height: clamp(320px, 60vmin, 700px);
+            box-sizing: border-box;
+        }
+        .cell { position: relative; aspect-ratio: 1; border-radius: 12px !important;
+            border: 2px solid #e0e0e0 !important; background: #f3f3f3 !important;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: background 0.2s, border 0.2s; font-size: 2.2em; }
+        .cell.visited { background: #f7f7f7 !important; color: #bbb; cursor: default; }
+        .cell:hover:not(.visited) { background: #e8f8ff; }
+        .cell.current { border: 3px solid #222 !important; background: #e0e0e0 !important; }
+
+        /***** CONTENT BOXES *****/
+        .role-box, .objective-box, .inventory-box {
+            background: #fff; border: 1.5px solid #e0e0e0; border-radius: 18px; box-shadow: 0 2px 8px #0001;
+            padding: 1.1em 1.2em; width: 100%; box-sizing: border-box; font-size: 1.15em; display: flex; flex-direction: column; justify-content: center;
+        }
+        .role-box { font-size: 1.25em; font-weight: bold; background: #f7f7f7; }
+        .objective-box { background: #f3f3f3; }
+        .inventory-box { background: #f7f7f7; }
+        .inventory-box h2 { margin: 0 0 0.5em 0; font-size: 1.2em; font-weight: bold; }
+        #inventory-list { list-style: none; padding: 0; margin: 0; }
+        #inventory-list li { margin-bottom: 0.4em; font-size: 1.08em; }
+
+        /***** BUTTONS *****/
+        #start-game-btn, .log-card button, .modal button, #submit-reflection {
+            background: #e0e0e0; color: #222; border: none; border-radius: 18px; font-size: 1.1em; font-weight: 600;
+            padding: 0.7em 2em; margin: 0.5em 0; box-shadow: 0 1px 4px #0001; cursor: pointer; transition: background 0.2s, color 0.2s;
+        }
+        #start-game-btn:disabled, #submit-reflection:disabled { background: #f3f3f3; color: #aaa; cursor: not-allowed; }
+
+        /***** LOG BUBBLES *****/
+        .log-bubble {
+            border-radius: 14px; margin: 0.6em 0; padding: 1em 1.2em; font-size: 0.95em; /* smaller */
+            word-break: break-word; box-shadow: 0 1px 4px #0001; border-left: 5px solid #e0e0e0; background: #fff; transition: background 0.2s;
+        }
+        .log-bubble.log-system       { background: #eafaf1; border-left-color: #b2dfc7; color: #333; }
+        .log-bubble.log-reflection   { background: #eaf7ff; border-left-color: #4a90e2; color: #1a3a5a; }
+        .log-bubble.log-user         { background: #f9fbe7; border-left-color: #cddc39; color: #666600; }
+        .log-bubble.log-elder        { background: #ede7f6; border-left-color: #7e57c2; color: #4527a0; font-size: 1.05em; font-weight: 600; }
+        .log-bubble.log-inject-story { background: #fffbe6; border-left-color: #ffb300; color: #7c5a00; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="top-bar">
+            <div class="timers">
+                <span>Session: <span id="primary-timer">--:--</span></span>
+                <span>Round: <span id="turn-counter">- / -</span></span>
+                <span>Round Timer: <span id="secondary-timer">--:--</span></span>
+            </div>
+            <button id="start-game-btn">Start Game</button>
+        </div>
+
+        <div class="main-area">
+            <!-- LEFT -->
+            <div class="left-panel">
+                <div class="role-box">Role: <span id="player-role">Charlie</span></div>
+                <div class="objective-box" id="objective-box">Elder Chew: Gather more Metal to upgrade the hull.</div>
+                <div class="inventory-box"><h2 style="margin-top:0;">Inventory</h2><ul id="inventory-list"></ul></div>
+            </div>
+
+            <!-- CENTER -->
+            <div class="center-panel"><div class="grid" id="grid"></div></div>
+
+            <!-- RIGHT -->
+            <div class="right-panel">
+                <div class="log-box" id="log-content"></div>
+                <div class="reflection-box">
+                    <textarea id="reflection-area" placeholder="Share your strategy..."></textarea>
+                    <button id="submit-reflection">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="leader-dashboard.js"></script>
+</body>
+</html>

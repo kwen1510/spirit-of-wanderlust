@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spirit of Wanderlust - Welcome</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f7f7f7;
+      color: #222;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 90%;
+      max-width: 450px; /* Adjusted for a more focused form */
+      background-color: #fff;
+      border-radius: 18px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      padding: 2.5rem;
+      margin: 2rem 0;
+      border: 1.5px solid #e0e0e0;
+      text-align: center; /* Center form elements */
+    }
+    h1 {
+      font-size: 2.2rem; /* Adjusted size */
+      margin: 0 0 2rem 0; /* Margin bottom */
+      color: #222;
+      letter-spacing: 1px;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+      text-align: left; /* Align labels to the left */
+    }
+    label {
+      display: block;
+      color: #555;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 1px;
+    }
+    select, input[type="text"] {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      border: 1.5px solid #e0e0e0;
+      background-color: #f7f7f7;
+      color: #222;
+      font-size: 1rem;
+      box-sizing: border-box; /* Ensure padding doesn't expand width */
+    }
+    select:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: #999;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+    }
+    .btn {
+      font-size: 1.1rem; /* Slightly larger button text */
+      padding: 0.9rem 2rem; /* Adjusted padding */
+      border-radius: 18px; /* More rounded */
+      border: none;
+      background: #e0e0e0;
+      color: #222;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      display: inline-block; /* Allow margin auto to work */
+      margin-top: 1rem; /* Space above button */
+    }
+    .btn:hover {
+      background: #d0d0d0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .alert {
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1rem;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        text-align: left;
+        font-size: 0.9rem;
+        display: none; /* Hidden by default */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Spirit of Wanderlust</h1>
+    <div id="error-message" class="alert"></div>
+    <form id="session-form">
+      <div class="form-group">
+        <label for="day-select">Day</label>
+        <select id="day-select" name="day">
+          <option value="D1">D1</option>
+          <option value="D2">D2</option>
+          <option value="D3">D3</option>
+          <!-- Add more days as needed -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="group-select">Group</label>
+        <select id="group-select" name="group">
+          <option value="G01">G01</option>
+          <option value="G02">G02</option>
+          <option value="G03">G03</option>
+          <!-- Add more groups as needed -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="player-name">Player Name</label>
+        <input type="text" id="player-name" name="playerName" placeholder="Enter your player name" required>
+      </div>
+      <button type="submit" class="btn">Start Session</button>
+    </form>
+  </div>
+
+  <script>
+    async function populateGroupDropdown() {
+      try {
+        const response = await fetch('/api/game-config');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const config = await response.json();
+        const maxGroups = config.MAX_CONCURRENT_GROUPS || 3; // Default to 3 if not found
+        const groupSelect = document.getElementById('group-select');
+        groupSelect.innerHTML = ''; // Clear existing options
+
+        for (let i = 1; i <= maxGroups; i++) {
+          const groupValue = `G${String(i).padStart(2, '0')}`;
+          const option = document.createElement('option');
+          option.value = groupValue;
+          option.textContent = groupValue;
+          groupSelect.appendChild(option);
+        }
+      } catch (error) {
+        console.error("Error fetching or parsing game config:", error);
+        // Fallback to default options if config fetch fails
+        const groupSelect = document.getElementById('group-select');
+        if (!groupSelect.options.length) { // Only add defaults if empty
+            ['G01', 'G02', 'G03'].forEach(val => {
+                const option = document.createElement('option');
+                option.value = val;
+                option.textContent = val;
+                groupSelect.appendChild(option);
+            });
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', populateGroupDropdown);
+
+    document.getElementById('session-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const day = document.getElementById('day-select').value;
+      const group = document.getElementById('group-select').value;
+      const playerName = document.getElementById('player-name').value.trim();
+      const errorMessageDiv = document.getElementById('error-message');
+
+      if (!playerName) {
+        errorMessageDiv.textContent = 'Player Name cannot be empty.';
+        errorMessageDiv.style.display = 'block';
+        return;
+      }
+      errorMessageDiv.style.display = 'none';
+
+      const sessionId = day + group; // Construct sessionId
+
+      // Redirect to role-select.html with parameters
+      const params = new URLSearchParams();
+      params.append('sessionId', sessionId);
+      params.append('playerId', playerName); // Use 'playerId' as the key for consistency
+      window.location.href = `role-select.html?${params.toString()}`;
+    });
+  </script>
+</body>
+</html> 

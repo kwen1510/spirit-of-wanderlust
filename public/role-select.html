@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spirit of Wanderlust - Role Selection</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f7f7f7;
+      color: #222;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .container {
+      width: 90%;
+      max-width: 800px;
+      background-color: #fff;
+      border-radius: 18px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      margin: 2rem 0;
+      border: 1.5px solid #e0e0e0;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 1rem;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin: 0;
+      color: #222;
+      letter-spacing: 1px;
+    }
+    
+    h2 {
+      font-size: 1.8rem;
+      margin: 1rem 0;
+      color: #333;
+      letter-spacing: 0.5px;
+    }
+    
+    h3 {
+      text-align: center;
+      margin-top: 2rem;
+      color: #333;
+      letter-spacing: 0.5px;
+      font-size: 1.4rem;
+    }
+    
+    #session-info {
+      display: flex;
+      justify-content: space-between;
+      padding: 1rem;
+      background-color: #f3f3f3;
+      border-radius: 18px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1.5px solid #e0e0e0;
+    }
+    
+    #session-info div {
+      text-align: center;
+      flex: 1;
+    }
+    
+    #session-info label {
+      display: block;
+      color: #555;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 1px;
+    }
+    
+    #session-info span {
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #222;
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      letter-spacing: 1px;
+    }
+    
+    #role-selection {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    
+    .role-btn {
+      font-size: 1.3rem;
+      padding: 1.2rem 2rem;
+      border-radius: 18px;
+      border: 2px solid transparent;
+      background: #f3f3f3;
+      color: #222;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      min-width: 180px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    
+    .role-btn:hover {
+      background: #e8e8e8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .role-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .role-btn.Charlie {
+      border-color: #b2dfc7;
+    }
+    
+    .role-btn.Wally {
+      border-color: #cddc39;
+    }
+    
+    .role-btn.Leo {
+      border-color: #7e57c2;
+    }
+    
+    .role-btn.Luca {
+      border-color: #ffb300;
+    }
+    
+    .role-btn.taken {
+      background: #f7f7f7;
+      color: #aaa;
+      border-color: #ddd;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    
+    .role-btn.taken:hover {
+      transform: none;
+    }
+    
+    .shimmer {
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 3s infinite;
+      border-radius: 4px;
+      padding: 0 10px;
+    }
+    
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 1rem;
+      color: #777;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Spirit of Wanderlust</h1>
+      <h2>Role Selection</h2>
+    </header>
+    
+    <div id="session-info">
+      <div id="session-display">
+        <label>Session ID</label>
+        <span id="session-id-display"></span>
+      </div>
+      <div id="player-display">
+        <label>Player ID</label>
+        <span id="player-id-display"></span>
+      </div>
+    </div>
+    
+    <h3>Choose your role</h3>
+    
+    <div id="role-selection">
+      <button class="role-btn Charlie" data-role="Charlie">Charlie</button>
+      <button class="role-btn Wally" data-role="Wally">Wally</button>
+      <button class="role-btn Leo" data-role="Leo">Leo</button>
+      <button class="role-btn Luca" data-role="Luca">Luca</button>
+    </div>
+  </div>
+  
+  <footer>
+    &copy; 2025 Spirit of Wanderlust | A Cooperative Adventure Game
+  </footer>
+  
+  <script src="role-select.js"></script>
+</body>
+</html> 

@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<!-- 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+  <title>Game Actions Viewer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #3a86ff;
+      --primary-light: #e1effe;
+      --secondary-color: #6c757d;
+      --success-color: #38b000;
+      --warning-color: #ffb703;
+      --danger-color: #e63946;
+      --light-gray: #f8f9fa;
+      --medium-gray: #e9ecef;
+      --dark-gray: #6c757d;
+      --border-radius: 8px;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body { 
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+      color: #333;
+      background-color: #f8f9fa;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-size: 1.75rem;
+      color: #333;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+    
+    .app-container {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 2rem;
+    }
+    
+    .filter-bar { 
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--medium-gray);
+    }
+    
+    select {
+      flex: 1;
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--medium-gray);
+      background-color: white;
+      transition: var(--transition);
+      min-width: 200px;
+    }
+    
+    select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.1);
+    }
+    
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    button:hover {
+      background-color: #2a75e8;
+      transform: translateY(-1px);
+    }
+    
+    .game-collapsible {
+      margin-bottom: 1.5rem;
+      border-radius: var(--border-radius);
+      background: white;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    
+    .game-header {
+      cursor: pointer;
+      background: var(--primary-light);
+      padding: 1rem 1.5rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .game-header:hover {
+      background: #d1e3fc;
+    }
+    
+    .game-header:after {
+      content: '⌄';
+      font-size: 1.2rem;
+      transition: transform 0.3s ease;
+    }
+    
+    .game-collapsible.open .game-header:after {
+      transform: rotate(180deg);
+    }
+    
+    .game-content {
+      display: none;
+      padding: 1.5rem;
+    }
+    
+    .game-collapsible.open .game-content {
+      display: block;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .game-summary {
+      margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+    
+    .summary-stats {
+      background: var(--light-gray);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      font-size: 0.95rem;
+      color: var(--secondary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .summary-stats b {
+      color: #333;
+      margin-right: 0.5rem;
+    }
+    
+    .map-container {
+      background: white;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .map-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 40px);
+      grid-template-rows: repeat(5, 40px);
+      gap: 3px;
+      margin-bottom: 1rem;
+      justify-content: center;
+    }
+    
+    .map-cell {
+      width: 40px;
+      height: 40px;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 500;
+      position: relative;
+      transition: var(--transition);
+    }
+    
+    .cell-start {
+      background: var(--primary-light);
+      border: 2px solid var(--primary-color);
+    }
+    
+    .cell-visited {
+      background: #e9f3ff;
+    }
+    
+    .cell-end {
+      border: 2px solid var(--warning-color);
+    }
+    
+    .cell-pickup::after {
+      content: '🔑';
+      position: absolute;
+      right: 2px;
+      bottom: 2px;
+      font-size: 0.9em;
+    }
+    
+    .cell-inject::after {
+      content: '✨';
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      font-size: 0.9em;
+    }
+    
+    .legend {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: var(--dark-gray);
+    }
+    
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    
+    .legend-box {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+    
+    .legend-start {
+      background: var(--primary-light);
+      border: 1px solid var(--primary-color);
+    }
+    
+    .legend-end {
+      border: 1px solid var(--warning-color);
+      background: white;
+    }
+    
+    .legend-visited {
+      background: #e9f3ff;
+      border: 1px solid #dee2e6;
+    }
+    
+    .round-section {
+      margin-bottom: 2rem;
+      border-radius: var(--border-radius);
+      background: white;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .round-header {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: var(--primary-color);
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--primary-light);
+    }
+    
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.8rem 0;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .section-title:before {
+      content: '';
+      width: 4px;
+      height: 18px;
+      background: var(--primary-color);
+      border-radius: 2px;
+      display: inline-block;
+    }
+    
+    .actions-table, .reflections-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .actions-table th, .actions-table td, .reflections-table th, .reflections-table td {
+      border: 1px solid #e9ecef;
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+    
+    .actions-table th, .reflections-table th {
+      background: var(--light-gray);
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    
+    .actions-table tr:nth-child(even), .reflections-table tr:nth-child(even) {
+      background: #f8f9fa;
+    }
+    
+    .actions-table tr:hover, .reflections-table tr:hover {
+      background: #f1f7ff;
+    }
+    
+    .role-table {
+      width: 100%;
+      margin-bottom: 1.5rem;
+      border-collapse: collapse;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .role-table th, .role-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border: 1px solid #e9ecef;
+    }
+    
+    .role-table th {
+      background: var(--light-gray);
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    
+    .reflection-charlie {
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+    
+    .reflection-wally {
+      color: var(--danger-color);
+      font-weight: 600;
+    }
+    
+    .reflection-leo {
+      color: #8338ec;
+      font-weight: 600;
+    }
+    
+    .reflection-luca {
+      color: var(--success-color);
+      font-weight: 600;
+    }
+    
+    .reflection-missing {
+      background: #fff8f0 !important;
+      color: var(--warning-color);
+      font-weight: 600;
+    }
+    
+    .icon {
+      font-size: 1.1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 0.3rem;
+    }
+    
+    .no-data {
+      color: var(--dark-gray);
+      font-style: italic;
+      margin: 2rem 0;
+      text-align: center;
+      padding: 2rem;
+      background: var(--light-gray);
+      border-radius: var(--border-radius);
+      font-size: 0.95rem;
+    }
+    
+    @media (max-width: 900px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .game-summary {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+    
+    @media (max-width: 700px) {
+      .actions-table, .reflections-table,
+      .actions-table th, .actions-table td,
+      .reflections-table th, .reflections-table td {
+        font-size: 0.85rem;
+      }
+      
+      .game-header {
+        font-size: 0.95rem;
+        padding: 0.8rem 1rem;
+      }
+      
+      .map-grid {
+        grid-template-columns: repeat(5, 30px);
+        grid-template-rows: repeat(5, 30px);
+      }
+      
+      .map-cell {
+        width: 30px;
+        height: 30px;
+        font-size: 0.8rem;
+      }
+      
+      .round-section {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <h1>Game Actions Viewer</h1>
+    <div class="filter-bar">
+      <label for="sessionSelect">Session ID:</label>
+      <select id="sessionSelect" onchange="renderGames()">
+        <option value="">(Select a session)</option>
+      </select>
+      <button onclick="renderGames()">Refresh</button>
+    </div>
+    <div id="gamesContainer"></div>
+    <div id="noDataMsg" class="no-data" style="display:none;">No data available for this session.</div>
+  </div>
+  <script>
+    // Role color map
+    const ROLE_COLOR_CLASS = {
+      Charlie: 'reflection-charlie',
+      Wally: 'reflection-wally',
+      Leo: 'reflection-leo',
+      Luca: 'reflection-luca'
+    };
+    // Action icons
+    const ACTION_ICONS = {
+      move: '➡️',
+      inject: '🎲',
+      'inventory-update': '📦',
+      log: '📝',
+      reflection: '💭',
+      'reflection-missing': '⚠️',
+      penalty: '⛔',
+    };
+    let allActions = [];
+    let allSessions = [];
+    let sessionGames = {};
+    // Fetch all actions and populate session dropdown
+    async function loadActions() {
+      const res = await fetch('/api/actions');
+      allActions = await res.json();
+      // Find all unique session IDs
+      const sessionSet = new Set(allActions.map(a => a.session_id));
+      allSessions = Array.from(sessionSet);
+      // Populate dropdown
+      const select = document.getElementById('sessionSelect');
+      select.innerHTML = '<option value="">(Select a session)</option>';
+      allSessions.forEach(sid => {
+        const opt = document.createElement('option');
+        opt.value = sid;
+        opt.textContent = sid;
+        select.appendChild(opt);
+      });
+    }
+    // Group actions by games (by game_instance)
+    function groupGamesBySession(sessionId) {
+      const sessionActions = allActions.filter(a => a.session_id === sessionId);
+      // Group by game_instance
+      const gamesByInstance = {};
+      sessionActions.forEach(a => {
+        const key = a.game_instance || 'unknown';
+        if (!gamesByInstance[key]) gamesByInstance[key] = [];
+        gamesByInstance[key].push(a);
+      });
+      // Return as array of arrays, sorted by first action timestamp
+      return Object.values(gamesByInstance).sort((a, b) => {
+        const tA = a[0]?.timestamp || '';
+        const tB = b[0]?.timestamp || '';
+        return tA.localeCompare(tB);
+      });
+    }
+    // Group actions by round within a game
+    function groupRounds(gameActions) {
+      const rounds = {};
+      gameActions.forEach(a => {
+        if (!a.round_num) return;
+        if (!rounds[a.round_num]) rounds[a.round_num] = [];
+        rounds[a.round_num].push(a);
+      });
+      return rounds;
+    }
+    // Build a map summary for a game
+    function buildGameMap(gameActions) {
+      // Assume 5x5 grid (can be made dynamic)
+      const N = 5;
+      const grid = Array.from({ length: N }, () => Array(N).fill(null));
+      let startCell = null;
+      let endCell = null;
+      let visited = new Set();
+      let moveOrder = [];
+      // Find all moves and mark visited
+      gameActions.forEach(a => {
+        if (a.action_type === 'move') {
+          try {
+            const move = JSON.parse(a.action_data).move;
+            if (move && typeof move.r === 'number' && typeof move.c === 'number') {
+              visited.add(`${move.r},${move.c}`);
+              moveOrder.push({ r: move.r, c: move.c, player: a.player_id });
+              if (!startCell) startCell = { r: move.r, c: move.c };
+              endCell = { r: move.r, c: move.c };
+            }
+          } catch {}
+        }
+      });
+      return { N, visited, startCell, endCell, moveOrder };
+    }
+    // Helper to get emoji for item code
+    function getItemEmoji(code) {
+      // Default mapping for your game
+      return {
+        A: '🔥',
+        W: '🌲',
+        S: '⚡',
+        C: '🌀',
+        Key: '🔑',
+        Map: '🗺️',
+        Medkit: '🩹'
+      }[code] || '';
+    }
+    // Helper to get playerId to role mapping for a game instance
+    function getPlayerRolesForGame(gameActions, gameInstance) {
+      // Look for a 'roles' action for this game instance
+      for (const a of gameActions) {
+        if (a.action_type === 'roles' && a.game_instance === gameInstance && a.action_data) {
+          try {
+            const data = JSON.parse(a.action_data);
+            if (data.roles) {
+              return data.roles;
+            }
+          } catch {}
+        }
+      }
+      return {};
+    }
+    // Render all games for selected session
+    async function renderGames() {
+      const sessionId = document.getElementById('sessionSelect').value;
+      const gamesContainer = document.getElementById('gamesContainer');
+      const noDataMsg = document.getElementById('noDataMsg');
+      gamesContainer.innerHTML = '';
+      noDataMsg.style.display = 'none';
+      if (!sessionId) return;
+      const games = groupGamesBySession(sessionId);
+      if (!games.length || games[0].length === 0) {
+        noDataMsg.style.display = 'block';
+        return;
+      }
+      games.forEach((gameActions, gameIdx) => {
+        // Collapsible for each game
+        const gameDiv = document.createElement('div');
+        gameDiv.className = 'game-collapsible';
+        const header = document.createElement('div');
+        header.className = 'game-header';
+        const gameInstance = gameActions[0]?.game_instance || '';
+        // Get date from the first action's timestamp if available
+        let dateStr = '';
+        let timeStr = '';
+        if (gameActions[0]?.timestamp) {
+          const ts = gameActions[0].timestamp;
+          const date = new Date(ts);
+          // Format date as YYYY-MM-DD
+          dateStr = ts.slice(0, 10);
+          // Format time as HH:MM (GMT+8)
+          timeStr = date.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'Asia/Singapore'
+          });
+        }
+        
+        header.innerHTML = `Game #${gameIdx + 1} <span style="opacity: 0.7; font-size: 0.9em; font-weight: normal;">
+          ${dateStr ? dateStr + ' ' + timeStr : ''} ${gameInstance ? '• ' + gameInstance : ''}
+        </span>`;
+        
+        header.onclick = () => gameDiv.classList.toggle('open');
+        gameDiv.appendChild(header);
+        const content = document.createElement('div');
+        content.className = 'game-content';
+        
+        // --- Player roles summary as a table ---
+        const playerRoles = getPlayerRolesForGame(gameActions, gameInstance);
+        if (Object.keys(playerRoles).length > 0) {
+          const rolesTitle = document.createElement('div');
+          rolesTitle.className = 'section-title';
+          rolesTitle.textContent = 'Player Roles';
+          content.appendChild(rolesTitle);
+          
+          const rolesTable = document.createElement('table');
+          rolesTable.className = 'role-table';
+          rolesTable.innerHTML = `<thead><tr><th>Player</th><th>Role</th></tr></thead><tbody></tbody>`;
+          const tbody = rolesTable.querySelector('tbody');
+          Object.entries(playerRoles).forEach(([pid, role]) => {
+            const tr = document.createElement('tr');
+            const roleClass = ROLE_COLOR_CLASS[role] || '';
+            tr.innerHTML = `<td>${pid}</td><td class='${roleClass}'>${role}</td>`;
+            tbody.appendChild(tr);
+          });
+          content.appendChild(rolesTable);
+        }
+        
+        // --- Game summary and map ---
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'game-summary';
+        
+        // Stats card
+        const statsCard = document.createElement('div');
+        statsCard.className = 'summary-stats';
+        const roundsSet = new Set(gameActions.map(a => a.round_num).filter(Boolean));
+        const playersSet = new Set(gameActions.map(a => a.player_id).filter(Boolean));
+        statsCard.innerHTML = `<b>Rounds Played:</b> ${roundsSet.size}`;
+        summaryDiv.appendChild(statsCard);
+        
+        // Map card
+        const mapContainer = document.createElement('div');
+        mapContainer.className = 'map-container';
+        
+        const map = buildGameMap(gameActions);
+        const mapGrid = document.createElement('div');
+        mapGrid.className = 'map-grid';
+        for (let r = 0; r < map.N; r++) {
+          for (let c = 0; c < map.N; c++) {
+            const cellKey = `${r},${c}`;
+            const cell = document.createElement('div');
+            cell.className = 'map-cell';
+            if (map.startCell && map.startCell.r === r && map.startCell.c === c) cell.classList.add('cell-start');
+            if (map.endCell && map.endCell.r === r && map.endCell.c === c) cell.classList.add('cell-end');
+            if (map.visited.has(cellKey)) cell.classList.add('cell-visited');
+            // Show move order (optional: show only for visited)
+            const moveIdx = map.moveOrder.findIndex(m => m.r === r && m.c === c);
+            if (moveIdx !== -1) {
+              cell.textContent = moveIdx;
+            }
+            mapGrid.appendChild(cell);
+          }
+        }
+        mapContainer.appendChild(mapGrid);
+        
+        // Legend
+        const legend = document.createElement('div');
+        legend.className = 'legend';
+        legend.innerHTML = `
+          <span><span class="legend-box legend-start"></span> Start</span>
+          <span><span class="legend-box legend-end"></span> End</span>
+          <span><span class="legend-box legend-visited"></span> Visited</span>
+        `;
+        mapContainer.appendChild(legend);
+        summaryDiv.appendChild(mapContainer);
+        content.appendChild(summaryDiv);
+        
+        // Group by rounds
+        const rounds = groupRounds(gameActions);
+        Object.keys(rounds).sort((a, b) => +a - +b).forEach(roundNum => {
+          const roundActions = rounds[roundNum];
+          // Section for each round
+          const roundDiv = document.createElement('div');
+          roundDiv.className = 'round-section';
+          
+          // Round header
+          const roundHeader = document.createElement('div');
+          roundHeader.className = 'round-header';
+          roundHeader.textContent = `Round ${roundNum}`;
+          roundDiv.appendChild(roundHeader);
+          
+          // Decisions/Actions section
+          const actionsTitle = document.createElement('div');
+          actionsTitle.className = 'section-title';
+          actionsTitle.textContent = 'Decisions / Actions';
+          roundDiv.appendChild(actionsTitle);
+          
+          const actionsTable = document.createElement('table');
+          actionsTable.className = 'actions-table';
+          actionsTable.innerHTML = `<thead><tr><th>Type</th><th>Details</th></tr></thead><tbody></tbody>`;
+          const actionsTbody = actionsTable.querySelector('tbody');
+          
+          roundActions.filter(a => a.action_type !== 'reflection' && a.action_type !== 'reflection-missing').forEach(a => {
+            const tr = document.createElement('tr');
+            let detailsHtml = '';
+            
+            if (a.action_type === 'move') {
+              try {
+                const data = JSON.parse(a.action_data);
+                const move = data.move || {};
+                const step = (typeof move.steps === 'number' && move.steps > 0) ? move.steps : '';
+                detailsHtml = `<div><b>Moved to:</b> (${move.r}, ${move.c})${step !== '' ? ` <b>Step:</b> ${step}` : ''}</div>`;
+              } catch {
+                detailsHtml = '<em>(invalid move data)</em>';
+              }
+            } else if (a.action_type === 'inject' || a.action_type === 'inventory-update') {
+              try {
+                const data = JSON.parse(a.action_data);
+                const inject = data.inject || {};
+                if (inject.story) detailsHtml += `<div><b>Story:</b> ${inject.story}</div>`;
+                
+                // Show choices from inject.options (legacy)
+                if (inject.type === 'choice' && inject.options) {
+                  const choices = Array.isArray(inject.options) ? inject.options.map(opt => getItemEmoji(opt)).join(', ') : '';
+                  if (choices) detailsHtml += `<div><b>Choices:</b> ${choices}</div>`;
+                }
+                
+                // Show choicesGiven and choiceMade (new)
+                if (data.choicesGiven && Array.isArray(data.choicesGiven)) {
+                  const choices = data.choicesGiven.map(opt => `${getItemEmoji(opt.code)} x ${opt.qty}`).join(', ');
+                  if (choices) detailsHtml += `<div><b>Choices given:</b> ${choices}</div>`;
+                }
+                
+                if (data.choiceMade && data.choiceMade.code) {
+                  const qty = data.choiceMade.qty !== undefined ? ` x ${data.choiceMade.qty}` : '';
+                  detailsHtml += `<div><b>Choice made:</b> ${getItemEmoji(data.choiceMade.code)}${qty}</div>`;
+                }
+                
+                // Show final inventory if present
+                if (data.state && data.state.inventory) {
+                  const inv = data.state.inventory;
+                  const invStr = Object.entries(inv).map(([k, v]) => `${getItemEmoji(k)}: ${v}`).join(', ');
+                  detailsHtml += `<div><b>Final inventory:</b> ${invStr}</div>`;
+                }
+                
+                if (inject.item) detailsHtml += `<div><b>Item lost:</b> ${getItemEmoji(inject.item) || inject.item}</div>`;
+              } catch {
+                detailsHtml = '<em>(invalid inject data)</em>';
+              }
+            } else if (a.action_type === 'penalty') {
+              try {
+                const penaltyData = JSON.parse(a.action_data);
+                const lostItem = penaltyData.lostItem || 'none';
+                const reason = penaltyData.reason || 'Unknown reason';
+                const lostItemEmoji = lostItem === 'A' ? '🔥' :
+                                    lostItem === 'W' ? '🌲' :
+                                    lostItem === 'S' ? '⚡' :
+                                    lostItem === 'C' ? '🌀' : '❓';
+                
+                detailsHtml = `<div><b>Reason:</b> ${reason}</div>`;
+                if (lostItem !== 'none') {
+                  detailsHtml += `<div><b>Item lost:</b> ${lostItemEmoji} ${lostItem}</div>`;
+                } else {
+                  detailsHtml += `<div><b>No item lost</b></div>`;  
+                }
+                
+                // Show final inventory if present
+                if (penaltyData.inventory) {
+                  const inv = penaltyData.inventory;
+                  const invStr = Object.entries(inv).map(([k, v]) => `${getItemEmoji(k)}: ${v}`).join(', ');
+                  detailsHtml += `<div><b>Final inventory:</b> ${invStr}</div>`;
+                }
+              } catch (e) {
+                console.error("Error parsing penalty data:", e);
+                detailsHtml = `<em>(invalid penalty data)</em> ${a.action_data}`;
+              }
+            } else {
+              try {
+                const data = JSON.parse(a.action_data);
+                if (data.messageText) {
+                  detailsHtml = data.messageText;
+                } else {
+                  detailsHtml = Object.keys(data).length ? JSON.stringify(data) : '';
+                }
+              } catch {
+                detailsHtml = a.action_data;
+              }
+            }
+            
+            tr.innerHTML = `
+              <td><span class="icon">${ACTION_ICONS[a.action_type] || ''}</span>${a.action_type}</td>
+              <td>${detailsHtml}</td>
+            `;
+            actionsTbody.appendChild(tr);
+          });
+          
+          if (!actionsTbody.children.length) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="2" class="no-data">No decisions/actions for this round.</td>`;
+            actionsTbody.appendChild(tr);
+          }
+          roundDiv.appendChild(actionsTable);
+          
+          // Reflections section
+          const reflectionsTitle = document.createElement('div');
+          reflectionsTitle.className = 'section-title';
+          reflectionsTitle.textContent = 'Reflections';
+          roundDiv.appendChild(reflectionsTitle);
+          
+          const reflectionsTable = document.createElement('table');
+          reflectionsTable.className = 'reflections-table';
+          reflectionsTable.innerHTML = `<thead><tr><th>Player</th><th>Type</th><th>Reflection</th></tr></thead><tbody></tbody>`;
+          const reflectionsTbody = reflectionsTable.querySelector('tbody');
+          
+          roundActions.filter(a => a.action_type === 'reflection' || a.action_type === 'reflection-missing').forEach(a => {
+            const tr = document.createElement('tr');
+            // Use playerRoles mapping if available
+            let role = playerRoles[a.player_id] || a.player_id || '';
+            let roleClass = '';
+            
+            if (/charlie/i.test(role)) roleClass = ROLE_COLOR_CLASS.Charlie;
+            else if (/wally/i.test(role)) roleClass = ROLE_COLOR_CLASS.Wally;
+            else if (/leo/i.test(role)) roleClass = ROLE_COLOR_CLASS.Leo;
+            else if (/luca/i.test(role)) roleClass = ROLE_COLOR_CLASS.Luca;
+            
+            tr.className = a.action_type === 'reflection-missing' ? 'reflection-missing' : roleClass;
+            
+            let reflectionText = '';
+            try {
+              reflectionText = JSON.parse(a.action_data).text || '<em>(empty)</em>';
+            } catch { reflectionText = '<em>(invalid)</em>'; }
+            
+            const icon = a.action_type === 'reflection' ? '💭' : '⚠️';
+            const type = a.action_type === 'reflection' ? 'Reflection' : 'Missed';
+            
+            tr.innerHTML = `
+              <td>${a.player_id ?? ''}</td>
+              <td><span class="icon">${icon}</span>${type}</td>
+              <td>${reflectionText}</td>
+            `;
+            reflectionsTbody.appendChild(tr);
+          });
+          
+          if (!reflectionsTbody.children.length) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="3" class="no-data">No reflections for this round.</td>`;
+            reflectionsTbody.appendChild(tr);
+          }
+          
+          roundDiv.appendChild(reflectionsTable);
+          content.appendChild(roundDiv);
+        });
+        
+        gameDiv.appendChild(content);
+        gamesContainer.appendChild(gameDiv);
+      });
+    }
+    // On page load, load actions and populate sessions
+    loadActions().then(renderGames);
+  </script>
+</body>
+</html>

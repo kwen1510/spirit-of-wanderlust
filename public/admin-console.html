@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<!-- 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <title>Spirit of Wanderlust - Admin Console</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #e2e2e2;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .admin-container {
+            width: 90%;
+            max-width: 1200px;
+            background-color: rgba(15, 23, 42, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .login-container {
+            width: 90%;
+            max-width: 500px;
+            background-color: rgba(15, 23, 42, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            text-align: center;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            padding-bottom: 1rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            color: #ffd700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        
+        h3 {
+            color: #ffd700;
+            letter-spacing: 0.5px;
+            font-size: 1.4rem;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .json-editor {
+            font-family: monospace;
+            height: 500px;
+            width: 100%;
+            background-color: rgba(15, 23, 42, 0.9);
+            color: #e2e2e2;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .item-card {
+            background-color: rgba(30, 41, 59, 0.8);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .config-tabs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .nav-link {
+            color: #94a3b8;
+            background: none;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            position: relative;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #ffd700;
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+        
+        .nav-link:hover {
+            color: #ffd700;
+        }
+        
+        .nav-link.active {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .nav-link.active::after {
+            transform: scaleX(1);
+        }
+        
+        .form-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .form-control {
+            background-color: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 8px;
+            padding: 0.8rem;
+            color: #e2e2e2;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+        }
+        
+        .form-check-input {
+            margin-right: 8px;
+        }
+        
+        .btn {
+            font-size: 1rem;
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            color: #ffd700;
+            border: 1px solid #ffd700;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(255, 215, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            color: #94a3b8;
+            border: 1px solid #94a3b8;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(148, 163, 184, 0.3);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            color: #f59e0b;
+            border: 1px solid #f59e0b;
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(245, 158, 11, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(239, 68, 68, 0.3);
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-warning {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .alert-success {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .alert-danger {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+        
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 0 10px;
+        }
+        
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 0 10px;
+        }
+        
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 0 10px;
+        }
+        
+        .col-md-2 {
+            flex: 0 0 16.666667%;
+            max-width: 16.666667%;
+            padding: 0 10px;
+        }
+        
+        .col-md-10 {
+            flex: 0 0 83.333333%;
+            max-width: 83.333333%;
+            padding: 0 10px;
+        }
+        
+        .d-flex {
+            display: flex;
+        }
+        
+        .align-items-end {
+            align-items: flex-end;
+        }
+        
+        .justify-content-between {
+            justify-content: space-between;
+        }
+        
+        .mt-3 {
+            margin-top: 1rem;
+        }
+        
+        .mt-4 {
+            margin-top: 1.5rem;
+        }
+        
+        .mb-3 {
+            margin-bottom: 1rem;
+        }
+        
+        .mb-4 {
+            margin-bottom: 1.5rem;
+        }
+        
+        .me-2 {
+            margin-right: 0.5rem;
+        }
+        
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 1rem;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        
+        #login-error {
+            display: none;
+        }
+        
+        .config-section {
+            display: none;
+        }
+        
+        .tab-content {
+            padding-top: 1rem;
+        }
+        
+        .tab-pane {
+            display: none;
+        }
+        
+        .tab-pane.active {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .col-md-6, .col-md-3, .col-md-4, .col-md-2, .col-md-10 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            
+            .config-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .nav-link {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Container -->
+    <div id="login-section" class="login-container">
+        <h1>Spirit of Wanderlust Admin</h1>
+        <div class="alert alert-warning" id="login-error">
+            Incorrect password. Please try again.
+        </div>
+        <form id="login-form">
+            <div class="mb-3">
+                <label for="password" class="form-label">Admin Password</label>
+                <input type="password" class="form-control" id="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Log In</button>
+        </form>
+    </div>
+
+    <!-- Admin Console Container (Hidden until authenticated) -->
+    <div id="admin-section" class="admin-container config-section">
+        <header>
+            <h1>Spirit of Wanderlust Admin Console</h1>
+        </header>
+        
+        <div class="config-tabs" id="configTabs" role="tablist">
+            <button class="nav-link active" id="general-tab" data-tab="general">General Settings</button>
+            <button class="nav-link" id="items-tab" data-tab="items">Game Items</button>
+            <button class="nav-link" id="text-tab" data-tab="text">Text Templates</button>
+            <button class="nav-link" id="injects-tab" data-tab="injects">Inject Events</button>
+            <button class="nav-link" id="json-tab" data-tab="json">Raw JSON</button>
+        </div>
+        
+        <div class="tab-content" id="configTabContent">
+            <!-- General Settings Tab -->
+            <div class="tab-pane active" id="general" role="tabpanel">
+                <h3>Game Parameters</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="roundCount" class="form-label">Number of Rounds</label>
+                            <input type="number" class="form-control" id="roundCount" min="1">
+                        </div>
+                        <div class="mb-3">
+                            <label for="roundDuration" class="form-label">Round Duration (seconds)</label>
+                            <input type="number" class="form-control" id="roundDuration" min="1">
+                        </div>
+                        <div class="mb-3">
+                            <label for="sessionDuration" class="form-label">Session Duration (seconds)</label>
+                            <input type="number" class="form-control" id="sessionDuration" min="1">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="gridSize" class="form-label">Grid Size</label>
+                            <input type="number" class="form-control" id="gridSize" min="3" max="10">
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxStepsPerRound" class="form-label">Max Steps Per Round</label>
+                            <input type="number" class="form-control" id="maxStepsPerRound" min="1">
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxConcurrentGroups" class="form-label">Max Concurrent Groups</label>
+                            <input type="number" class="form-control" id="maxConcurrentGroups" min="1">
+                        </div>
+                        <div class="mb-3">
+                            <input type="checkbox" id="testMode">
+                            <label for="testMode" class="form-label" style="display: inline-block; margin-left: 8px;">Test Mode</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3>Pickup Quantities</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="pickupSingleQty" class="form-label">Single Pickup Quantity</label>
+                            <input type="number" class="form-control" id="pickupSingleQty" min="1">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="pickupChoiceQty" class="form-label">Choice Pickup Quantity</label>
+                            <input type="number" class="form-control" id="pickupChoiceQty" min="1">
+                        </div>
+                    </div>
+                </div>
+                
+                <h3>Inject Event Probabilities</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="injectEventNullPercentage" class="form-label">Event Null Percentage</label>
+                            <input type="number" class="form-control" id="injectEventNullPercentage" min="0" max="100">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="injectRandomPercentage" class="form-label">Random Event Percentage</label>
+                            <input type="number" class="form-control" id="injectRandomPercentage" min="0" max="100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Items Tab -->
+            <div class="tab-pane" id="items" role="tabpanel">
+                <h3>Game Items</h3>
+                <div id="itemsContainer">
+                    <!-- Items will be added here dynamically -->
+                </div>
+                <button id="addItemBtn" class="btn btn-success mt-3">Add New Item</button>
+            </div>
+            
+            <!-- Text Templates Tab -->
+            <div class="tab-pane" id="text" role="tabpanel">
+                <h3>Text Templates</h3>
+                <div id="textTemplatesContainer">
+                    <!-- Text templates will be added here dynamically -->
+                </div>
+            </div>
+            
+            <!-- Inject Events Tab -->
+            <div class="tab-pane" id="injects" role="tabpanel">
+                <h3>Inject Event Stories</h3>
+                <div id="injectStoriesContainer">
+                    <!-- Inject stories will be added here dynamically -->
+                </div>
+                <button id="addInjectBtn" class="btn btn-success mt-3">Add New Inject Story</button>
+            </div>
+            
+            <!-- Raw JSON Tab -->
+            <div class="tab-pane" id="json" role="tabpanel">
+                <h3>Raw JSON Configuration</h3>
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> Editing the raw JSON directly may cause errors if the format is incorrect.
+                </div>
+                <textarea id="jsonEditor" class="json-editor"></textarea>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between mt-4">
+            <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+            <div>
+                <button id="resetBtn" class="btn btn-warning me-2">Reset Changes</button>
+                <button id="saveBtn" class="btn btn-primary">Save Configuration</button>
+            </div>
+        </div>
+        
+        <!-- Success Alert (Hidden by default) -->
+        <div class="alert alert-success mt-3" role="alert" id="saveSuccess" style="display: none;">
+            Configuration saved successfully!
+        </div>
+        
+        <!-- Error Alert (Hidden by default) -->
+        <div class="alert alert-danger mt-3" role="alert" id="saveError" style="display: none;">
+            Error saving configuration. Please check the console for details.
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2025 Spirit of Wanderlust | Administrative Console
+    </footer>
+
+    <script src="admin-console.js"></script>
+</body>
+</html> 

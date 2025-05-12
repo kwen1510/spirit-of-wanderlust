@@ -1,0 +1,78 @@
+{
+  "ROUND_COUNT": 5,
+  "ROUND_DURATION_SEC": 10,
+  "SESSION_DURATION_SEC": 240,
+  "GRID_SIZE": 5,
+  "MAX_STEPS_PER_ROUND": 8,
+  "ITEMS": [
+    {
+      "code": "A",
+      "name": "Spirit Ash",
+      "emoji": "🔥"
+    },
+    {
+      "code": "W",
+      "name": "Moonwood",
+      "emoji": "🌲"
+    },
+    {
+      "code": "S",
+      "name": "Storm-Iron",
+      "emoji": "⚡"
+    },
+    {
+      "code": "C",
+      "name": "Coral Runes",
+      "emoji": "🌀"
+    }
+  ],
+  "ROLES": [
+    "Charlie",
+    "Wally",
+    "Leo",
+    "Luca"
+  ],
+  "PROMPTS_FILE_PATTERN": "text/prompts-R{role}.json",
+  "MAX_CONCURRENT_GROUPS": 12,
+  "INJECT_EVENT_NULL_PERCENTAGE": 20,
+  "INJECT_RANDOM_PERCENTAGE": 30,
+  "TEST_MODE": false,
+  "INJECT_STORIES": [
+    "A mischievous sprite snatches something from your bag!",
+    "You stumble upon a mysterious altar demanding tribute.",
+    "A sudden gust of wind scatters your supplies.",
+    "A friendly animal offers a trade, but at a cost.",
+    "A hidden trap springs, forcing you to drop an item.",
+    "A wise old traveler asks for a donation.",
+    "A shimmering portal taxes your inventory for passage.",
+    "A riddle from the void: pay up or face the unknown!"
+  ],
+  "PLAYER_EMOJI": "🧑‍🚀",
+  "PICKUP_SINGLE_QTY": 3,
+  "PICKUP_CHOICE_QTY": 1,
+  "TEXT_TEMPLATES": {
+    "leaderStart": "Leader starting the game...",
+    "gameStart": "Game Started!",
+    "roundStart": "--- Round {roundNum} ---",
+    "elderChew": "Elder Chew: {elderMessage}",
+    "moveLog": "Moved to ({r}, {c}). Step {steps}/{maxSteps}.",
+    "noSteps": "❌ No more steps left.",
+    "revisitCell": "❌ Tried revisiting a cell.",
+    "invalidMove": "❌ Invalid move distance.",
+    "pickupBonus": "You found a bonus!",
+    "pickupChoiceTitle": "Pick up an item",
+    "injectTitle": "Inject Event",
+    "injectLossLog": "Inject: Lost 1 {itemName} ({itemEmoji})",
+    "injectNoLoss": "Inject: No items to lose.",
+    "reflectionSubmitLog": "Reflection Submitted (R{roundNum}): {text}",
+    "reflectionMissLog": "Reflection Missed (R{roundNum}): {text}",
+    "reflectionPenaltyLog": "Reflection Penalty: {lossText}. Reason: {reason}",
+    "penaltyItemLoss": "Lost 1 {itemName} ({itemEmoji})",
+    "penaltyNoItem": "No item lost",
+    "penaltyReasonMissed": "A reflection was missed.",
+    "sessionEnd": "Session ended! Time ran out.",
+    "modalItemLossTitle": "You lost 1 {itemName}!",
+    "modalPenaltyTitle": "Team Penalty!",
+    "modalPenaltyBody": "{reason} {lossText}"
+  }
+}
