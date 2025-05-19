@@ -1,10 +1,24 @@
+// Clear ALL storage on load
+const urlParams = new URLSearchParams(window.location.search);
+const hasRequiredParams = urlParams.get('sessionId') && urlParams.get('playerId') && urlParams.get('role');
+
+// Clear entire localStorage if accessing without parameters
+if (!hasRequiredParams) {
+    localStorage.clear();
+    console.log('Cleared localStorage due to missing parameters');
+}
+
+// Clear sessionStorage on load to reset reflection submission state for testing
+sessionStorage.clear(); 
+
+// Load Elder Chew messages from localStorage if available
+let roleSpecificElderChewMessages = JSON.parse(localStorage.getItem('elderChewMessages')) || [];
+let introductoryMessage = localStorage.getItem('introductoryMessage') || "Awaiting role assignment...";
+
 // Declare core session variables early
 let sessionId = null;
 let playerId = null;
 let role = null;
-
-// Clear sessionStorage on load to reset reflection submission state for testing
-sessionStorage.clear(); 
 
 // Demo data for inventory
 let inventory = { A: 0, W: 0, S: 0, C: 0 };
@@ -12,8 +26,6 @@ const itemNames = { A: 'Spirit Ash', W: 'Moonwood', S: 'Storm-Iron', C: 'Coral R
 const itemEmojis = { A: '🔥', W: '🌲', S: '⚡', C: '🌀' };
 const itemCodes = Object.keys(itemNames);
 
-let introductoryMessage = "Awaiting role assignment..."; // Only need intro message now
-let roleSpecificElderChewMessages = []; // Array to store role-specific Elder Chew messages
 let logEntries = []; 
 
 let reflectionSubmitted = false;
@@ -50,7 +62,7 @@ function renderInventory() {
     Object.keys(itemNames).forEach(code => {
         const qty = inventory[code] == null ? 0 : inventory[code];
         const li = document.createElement('li');
-        li.textContent = `${itemNames[code]}: ${qty}`;
+        li.textContent = `${itemEmojis[code]} ${itemNames[code]}: ${qty}`;
         ul.appendChild(li);
     });
 }
@@ -251,6 +263,10 @@ async function loadRoleIntro(roleNameToLoad) {
         if (!messagesResponse.ok) throw new Error(`HTTP error for messages: ${messagesResponse.status}`);
         const allRoleMessages = await messagesResponse.json();
         roleSpecificElderChewMessages = allRoleMessages[roleNameToLoad.toLowerCase()] || [];
+        
+        // Save to localStorage
+        localStorage.setItem('elderChewMessages', JSON.stringify(roleSpecificElderChewMessages));
+        localStorage.setItem('introductoryMessage', introductoryMessage);
         
         // Display initial message and log it
         updateObjectiveBox(); // Display initial intro message

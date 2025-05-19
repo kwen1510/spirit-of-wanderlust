@@ -159,6 +159,7 @@
     document.addEventListener('DOMContentLoaded', populateGroupDropdown);
 
     document.getElementById('session-form').addEventListener('submit', function(event) {
+      localStorage.clear(); // Clear all local storage before starting a new session
       event.preventDefault();
       const day = document.getElementById('day-select').value;
       const group = document.getElementById('group-select').value;

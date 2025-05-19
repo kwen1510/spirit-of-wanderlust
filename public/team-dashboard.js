@@ -1,6 +1,59 @@
 // Clear ALL storage on load to reset reflection submission state for testing
 sessionStorage.clear();
-localStorage.clear(); // Also clear localStorage
+
+// Get URL parameters and check if we need to clear localStorage
+const hasRequiredParams = new URLSearchParams(window.location.search).get('sessionId') && 
+                         new URLSearchParams(window.location.search).get('playerId') && 
+                         new URLSearchParams(window.location.search).get('role');
+
+// Clear entire localStorage if accessing without parameters
+if (!hasRequiredParams) {
+    localStorage.clear();
+}
+
+// Load chat messages from localStorage if available
+let logEntries = JSON.parse(localStorage.getItem('chatMessages')) || [];
+
+// Restore Elder Chew messages if logEntries is empty (e.g., after refresh)
+(async function restoreElderChewLog() {
+    // Only run if logEntries is empty or if you want to always reconstruct
+    const savedRole = localStorage.getItem('role') || role;
+    const savedIntro = localStorage.getItem('introductoryMessage') || introductoryMessage;
+    let savedRound = parseInt(localStorage.getItem('currentRoundNumber'), 10);
+    if (!savedRound || isNaN(savedRound)) savedRound = 1;
+    let elderChewMessages = JSON.parse(localStorage.getItem('elderChewMessages'));
+    if (!elderChewMessages) {
+        try {
+            const res = await fetch('/text/elder-chew-messages.json');
+            const allRoleMessages = await res.json();
+            elderChewMessages = allRoleMessages[savedRole.toLowerCase()] || [];
+        } catch {
+            elderChewMessages = [];
+        }
+    }
+
+    // Build the Elder Chew log
+    const rebuiltLog = [];
+    if (savedIntro) rebuiltLog.push(`Elder Chew: ${savedIntro}`);
+    for (let i = 0; i < savedRound; i++) {
+        if (elderChewMessages && elderChewMessages[i]) {
+            rebuiltLog.push(`Elder Chew: ${elderChewMessages[i]}`);
+        }
+    }
+
+    // Append any non-Elder Chew messages from the previous log
+    const previousLog = JSON.parse(localStorage.getItem('chatMessages')) || [];
+    for (const entry of previousLog) {
+        if (!entry.startsWith('Elder Chew:')) {
+            rebuiltLog.push(entry);
+        }
+    }
+
+    logEntries = rebuiltLog;
+    localStorage.setItem('chatMessages', JSON.stringify(logEntries));
+})();
+
+// Don't clear localStorage for Elder Chew messages
 document.cookie.split(";").forEach(function(c) { 
     document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
 });
@@ -15,9 +68,10 @@ const itemNames = { A: 'Spirit Ash', W: 'Moonwood', S: 'Storm-Iron', C: 'Coral R
 const itemEmojis = { A: '🔥', W: '🌲', S: '⚡', C: '🌀' };
 const itemCodes = Object.keys(itemNames);
 
-let roleSpecificElderChewMessages = [];
-let introductoryMessage = "Awaiting role assignment...";
-let logEntries = [];
+// Load Elder Chew messages from localStorage if available
+let roleSpecificElderChewMessages = JSON.parse(localStorage.getItem('elderChewMessages')) || [];
+let introductoryMessage = localStorage.getItem('introductoryMessage') || "Awaiting role assignment...";
+
 let roundNum = 1;
 let sessionEndTime = null; // Stores end timestamp received from server
 let roundEndTime = null;   // Stores end timestamp received from server
@@ -41,6 +95,8 @@ const role = urlParams.get('role') || 'Wally'; // Fallback to Wally if not speci
 
 // Initialize ws as null, properly create it in DOMContentLoaded event
 let ws = null;
+let reconnectTimeout = null;
+const RECONNECT_DELAY = 2000; // 2 seconds
 
 // Add necessary constants (copy from leader)
 let N = 5; // Grid size - will be updated from server
@@ -120,6 +176,10 @@ async function loadElderChewMessages() {
         const allRoleMessages = await messagesResponse.json();
         roleSpecificElderChewMessages = allRoleMessages[role.toLowerCase()] || [];
         
+        // Save to localStorage
+        localStorage.setItem('elderChewMessages', JSON.stringify(roleSpecificElderChewMessages));
+        localStorage.setItem('introductoryMessage', introductoryMessage);
+        
         // Display initial message in objective box
         updateObjectiveBox();
         
@@ -184,8 +244,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- NOW CREATE WebSocket URL --- 
     const wsUrl = `${wsProtocol}//${wsHost}`;
     console.log(`[Team] Attempting to connect WebSocket to: ${wsUrl}`);
-    ws = new WebSocket(wsUrl);
-    window.ws = ws; // Optional, for debugging
+    connectWebSocket();
 
     // Assign WebSocket event handlers
     ws.onopen = () => {
@@ -565,8 +624,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     ws.onclose = (event) => {
-        console.log('[Team] !!! WebSocket CLOSED:', event.code, event.reason);
-        ws = null;
+        console.warn('[Team] !!! WebSocket CLOSED. Attempting to reconnect in 2s...', event.code, event.reason);
+        if (reconnectTimeout) clearTimeout(reconnectTimeout);
+        reconnectTimeout = setTimeout(connectWebSocket, RECONNECT_DELAY);
     };
 
     // Assign reflection button handler
@@ -660,7 +720,7 @@ function renderInventory() {
     Object.keys(itemNames).forEach(code => {
         const qty = inventory[code] == null ? 0 : inventory[code];
         const li = document.createElement('li');
-        li.textContent = `${itemNames[code]}: ${qty}`;
+        li.textContent = `${itemEmojis[code]} ${itemNames[code]}: ${qty}`;
         ul.appendChild(li);
     });
 }
@@ -721,9 +781,10 @@ function updateObjectiveBox() {
     objectiveBox.textContent = 'Elder Chew: ' + introductoryMessage;
 }
 
-// Function to log messages
+// Modify the log function to save to localStorage
 function log(msg) {
     logEntries.push(msg);
+    localStorage.setItem('chatMessages', JSON.stringify(logEntries));
     renderLog(); 
 }
 
@@ -991,3 +1052,39 @@ window.addEventListener('beforeunload', function (e) {
     e.preventDefault();
     e.returnValue = '';
 }); 
+
+function connectWebSocket() {
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = window.location.host;
+    const wsUrl = `${wsProtocol}//${wsHost}`;
+    ws = new WebSocket(wsUrl);
+    window.ws = ws; // Optional, for debugging
+
+    ws.onopen = () => {
+        console.log('[Team] WebSocket opened');
+        // Re-register on reconnect
+        safeSendWS({
+            sessionId,
+            type: 'register',
+            payload: { playerId, role }
+        });
+        loadElderChewMessages();
+    };
+
+    ws.onmessage = (event) => {
+        // ... your existing message handling logic ...
+        // (The rest of your ws.onmessage code should remain unchanged)
+        // We'll insert the rest of the code after this edit.
+    };
+
+    ws.onerror = (error) => {
+        console.error('[Team] WebSocket ERROR:', error);
+        // No need to reconnect here, onclose will handle it
+    };
+
+    ws.onclose = (event) => {
+        console.warn('[Team] WebSocket CLOSED. Attempting to reconnect in 2s...', event.code, event.reason);
+        if (reconnectTimeout) clearTimeout(reconnectTimeout);
+        reconnectTimeout = setTimeout(connectWebSocket, RECONNECT_DELAY);
+    };
+} 
